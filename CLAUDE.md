@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A mobile-responsive web application for therapists to manage worksheets for clients. Built with Next.js and TypeScript, deployed to Vercel.
+A mobile-responsive web application for therapists to manage worksheets for clients. Built with Nuxt.js and TypeScript, deployed to Vercel.
 
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: Next.js with TypeScript
+- **Frontend**: Nuxt.js with TypeScript
 - **Database**: PostgreSQL with Neon (serverless, Vercel-optimized)
 - **ORM**: Drizzle ORM with drizzle-kit for migrations
 - **Deployment**: Vercel
@@ -73,7 +73,6 @@ A mobile-responsive web application for therapists to manage worksheets for clie
 
 ### File Organization
 When implementing:
-- Use Next.js App Router structure
 - Separate components for therapist and client interfaces
 - Shared components for common UI elements
 - API routes for backend functionality
