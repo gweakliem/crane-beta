@@ -3,12 +3,12 @@
     <div class="max-w-md w-full">
       <div class="text-center mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Therapist Login</h1>
-        <p class="text-gray-600">Sign in with your email and password</p>
+        <p class="text-gray-600">Enter your email to receive a login code</p>
       </div>
 
       <div class="card">
-        <form @submit.prevent="handleLogin" class="space-y-4">
-          <div>
+        <form @submit.prevent="handleSubmit" class="space-y-4">
+          <div v-if="!otpSent">
             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
               Email Address
             </label>
@@ -20,29 +20,43 @@
               class="input-field"
               placeholder="therapist@example.com"
             />
+            <button 
+              type="submit" 
+              :disabled="loading"
+              class="w-full btn-primary mt-4"
+            >
+              {{ loading ? 'Sending...' : 'Send Login Code' }}
+            </button>
           </div>
 
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-              Password
+          <div v-else>
+            <label for="code" class="block text-sm font-medium text-gray-700 mb-2">
+              Enter 6-digit code
             </label>
             <input
-              id="password"
-              v-model="password"
-              type="password"
+              id="code"
+              v-model="code"
+              type="text"
+              maxlength="6"
               required
-              class="input-field"
-              placeholder="••••••••"
+              class="input-field text-center text-lg tracking-wider"
+              placeholder="123456"
             />
+            <button 
+              type="submit" 
+              :disabled="loading"
+              class="w-full btn-primary mt-4"
+            >
+              {{ loading ? 'Verifying...' : 'Verify Code' }}
+            </button>
+            <button 
+              type="button"
+              @click="resetForm"
+              class="w-full btn-secondary mt-2"
+            >
+              Use Different Email
+            </button>
           </div>
-
-          <button 
-            type="submit" 
-            :disabled="loading"
-            class="w-full btn-primary"
-          >
-            {{ loading ? 'Signing In...' : 'Sign In' }}
-          </button>
 
           <div v-if="error" class="text-red-600 text-sm text-center">
             {{ error }}
@@ -61,27 +75,47 @@
 
 <script setup>
 const email = ref('')
-const password = ref('')
+const code = ref('')
+const otpSent = ref(false)
 const loading = ref(false)
 const error = ref('')
 
-async function handleLogin() {
+async function handleSubmit() {
   loading.value = true
   error.value = ''
 
   try {
-    const response = await $fetch('/api/auth/therapist/login', {
-      method: 'POST',
-      body: { email: email.value, password: password.value }
-    })
-    
-    if (response.success) {
-      await navigateTo('/therapist/dashboard')
+    if (!otpSent.value) {
+      await $fetch('/api/auth/therapist/send-otp', {
+        method: 'POST',
+        body: { identifier: email.value, type: 'email' }
+      })
+      otpSent.value = true
+    } else {
+      const response = await $fetch('/api/auth/therapist/verify-otp', {
+        method: 'POST',
+        body: { identifier: email.value, code: code.value }
+      })
+      
+      if (response.success) {
+        // Small delay to ensure cookie is set by server
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        await navigateTo('/therapist/dashboard')
+      } else {
+        error.value = 'Verification failed'
+      }
     }
   } catch (err) {
-    error.value = err.data?.message || 'Invalid credentials'
+    error.value = err.data?.message || err.message || 'An error occurred'
   } finally {
     loading.value = false
   }
+}
+
+function resetForm() {
+  otpSent.value = false
+  code.value = ''
+  error.value = ''
 }
 </script>

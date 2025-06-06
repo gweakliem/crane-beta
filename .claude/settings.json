@@ -1,8 +1,22 @@
 {
-    "mcpServers": {
-      "puppeteer": {
-        "command": "npx",
-        "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
-      }
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "mcp__ide__getDiagnostics",
+      "Bash(npm run lint)",
+      "Bash(npx vue-tsc:*)",
+      "Bash(npm run )",
+      "Bash(npm test *)",
+      "Bash(npx vitest *)",
+      "Bash(npx vitest run *)",
+      "Bash(npx drizzle-kit generate)"
+    ],
+    "deny": []
+  },
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
     }
   }
+}

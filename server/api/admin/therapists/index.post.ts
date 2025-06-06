@@ -1,19 +1,17 @@
 import { z } from 'zod'
 import { db } from '~/server/db'
 import { users } from '~/server/db/schema'
-import { hashPassword } from '~/utils/auth'
 import { eq } from 'drizzle-orm'
 
 const schema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
-  password: z.string().min(6),
 })
 
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
-    const { name, email, password } = schema.parse(body)
+    const { name, email } = schema.parse(body)
 
     // Check if email already exists
     const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1)
@@ -24,14 +22,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Hash password
-    const passwordHash = await hashPassword(password)
-
-    // Create therapist
+    // Create therapist (no password needed - OTP authentication)
     const [newTherapist] = await db.insert(users).values({
       name,
       email,
-      passwordHash,
+      passwordHash: null, // OTP authentication only
       role: 'therapist',
     }).returning({
       id: users.id,

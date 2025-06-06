@@ -110,10 +110,6 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input v-model="newTherapist.email" type="email" required class="input-field" />
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <input v-model="newTherapist.password" type="password" required class="input-field" />
-            </div>
             <div class="flex justify-end space-x-3">
               <button type="button" @click="showAddTherapist = false" class="btn-secondary">
                 Cancel
@@ -172,8 +168,7 @@ const stats = ref({
 const therapists = ref([])
 const newTherapist = ref({
   name: '',
-  email: '',
-  password: ''
+  email: ''
 })
 const editingTherapist = ref({
   id: '',
@@ -194,7 +189,7 @@ async function addTherapist() {
       body: newTherapist.value
     })
     showAddTherapist.value = false
-    newTherapist.value = { name: '', email: '', password: '' }
+    newTherapist.value = { name: '', email: '' }
     await loadData()
   } catch (error) {
     console.error('Failed to add therapist:', error)
@@ -242,14 +237,32 @@ async function toggleTherapistStatus(therapist) {
 
 async function loadData() {
   try {
+    console.log('Loading admin dashboard data...')
     const [therapistsData, statsData] = await Promise.all([
       $fetch('/api/admin/therapists'),
       $fetch('/api/admin/stats')
     ])
-    therapists.value = therapistsData
-    stats.value = statsData
+    console.log('Therapists data:', therapistsData)
+    console.log('Stats data:', statsData)
+    
+    // Ensure data is properly structured
+    therapists.value = Array.isArray(therapistsData) ? therapistsData : []
+    stats.value = typeof statsData === 'object' && statsData !== null ? statsData : {
+      totalTherapists: 0,
+      activeClients: 0,
+      pendingWorksheets: 0
+    }
+    
+    console.log('Data loaded successfully')
   } catch (error) {
     console.error('Failed to load data:', error)
+    // Set default values on error
+    therapists.value = []
+    stats.value = {
+      totalTherapists: 0,
+      activeClients: 0,
+      pendingWorksheets: 0
+    }
   }
 }
 

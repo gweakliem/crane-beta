@@ -5,7 +5,7 @@ import { relations } from 'drizzle-orm'
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  passwordHash: text('password_hash'), // null for admin users (OTP only)
+  passwordHash: text('password_hash'), // null for admin and therapist users (OTP only)
   role: varchar('role', { length: 20 }).notNull().default('therapist'), // 'therapist' | 'admin'
   name: varchar('name', { length: 255 }).notNull(),
   isActive: boolean('is_active').notNull().default(true),
@@ -58,7 +58,7 @@ export const otpCodes = pgTable('otp_codes', {
   identifier: varchar('identifier', { length: 255 }).notNull(), // email or phone
   code: varchar('code', { length: 10 }).notNull(),
   type: varchar('type', { length: 20 }).notNull(), // 'sms' | 'email'
-  userType: varchar('user_type', { length: 20 }).notNull(), // 'client' | 'admin'
+  userType: varchar('user_type', { length: 20 }).notNull(), // 'client' | 'admin' | 'therapist'
   expiresAt: timestamp('expires_at').notNull(),
   isUsed: boolean('is_used').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),

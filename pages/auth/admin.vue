@@ -86,12 +86,15 @@ async function handleSubmit() {
 
   try {
     if (!otpSent.value) {
+      console.log('Sending OTP to:', email.value)
       await $fetch('/api/auth/admin/send-otp', {
         method: 'POST',
         body: { identifier: email.value, type: 'email' }
       })
+      console.log('OTP sent successfully')
       otpSent.value = true
     } else {
+      console.log('Verifying OTP code:', code.value, 'for email:', email.value)
       const response = await $fetch('/api/auth/admin/verify-otp', {
         method: 'POST',
         body: { identifier: email.value, code: code.value }
@@ -100,17 +103,29 @@ async function handleSubmit() {
       console.log('OTP verification response:', response)
       
       if (response.success) {
-        console.log('OTP verified successfully, navigating to dashboard...')
+        console.log('OTP verified successfully, user data:', response.user)
         
-        // Refresh the auth token cookie to ensure it's available to middleware
-        const authToken = useCookie('auth-token')
-        await refreshCookie('auth-token')
+        // Check if cookie was set
+        const authCookie = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('auth-token='))
         
-        // Small delay to ensure cookie is set
-        await new Promise(resolve => setTimeout(resolve, 100))
+        console.log('Auth cookie present after verification:', !!authCookie)
         
-        await navigateTo('/admin/dashboard')
+        // Longer delay to ensure cookie is properly set and recognized
+        console.log('Waiting before navigation...')
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        console.log('Navigating to dashboard with hard redirect')
+        // Get the current origin (including protocol, hostname, and port)
+        const currentOrigin = window.location.origin
+        console.log('Current origin:', currentOrigin)
+        
+        // Force a hard navigation to ensure the page fully reloads with the new cookie
+        // Use the full URL with the current origin to ensure we're using the same port
+        window.location.href = `${currentOrigin}/admin/dashboard`
       } else {
+        console.log('Verification failed')
         error.value = 'Verification failed'
       }
     }

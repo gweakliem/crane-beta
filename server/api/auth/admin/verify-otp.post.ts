@@ -61,13 +61,25 @@ export default defineEventHandler(async (event) => {
     const session = createUserSession(adminUser[0])
     const token = createJWT(session)
 
-    // Set HTTP-only cookie
+    // Set HTTP-only cookie with explicit path and domain settings
+    console.log('Setting auth cookie with token:', token.substring(0, 20) + '...')
+    
+    // Get the current request host for domain matching
+    const requestHost = getRequestHost(event);
+    console.log('Request host for cookie domain:', requestHost);
+    
     setCookie(event, 'auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax', // Use lax to allow redirects
+      path: '/', // Explicitly set path to root to ensure it's available across the site
       maxAge: 7 * 24 * 60 * 60, // 7 days
+      // Don't set domain explicitly, let the browser handle it based on the current domain
     })
+    
+    // Log cookie header for debugging
+    const responseHeaders = event.node.res.getHeaders();
+    console.log('Response headers after setting cookie:', responseHeaders);
     
     console.log('Cookie set successfully, returning success response')
 
